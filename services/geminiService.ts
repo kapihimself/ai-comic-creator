@@ -133,43 +133,50 @@ const generateContinuationScript = async (
 };
 
 const generatePanelImage = async (panelDescription: string, characterPrompt: string): Promise<string> => {
-    const prompt = `
-        Create an image for a comic book panel in a vibrant, dynamic, American comic book art style.
-        The scene is: "${panelDescription}".
-        The main character is consistently portrayed as: "${characterPrompt}".
-        The image should be action-packed, colorful, and have clear line art with dramatic shading.
-    `;
-
+    // For now, we'll use placeholder images since Gemini's image generation API
+    // might not be available or working as expected
+    // In a production app, you might want to integrate with DALL-E, Midjourney, or Stable Diffusion
+    
     try {
-        // Try different image generation models
-        const models = ['imagen-3.0-generate-001', 'imagen-2.0-generate-001'];
+        // Generate a unique placeholder based on the description
+        const encodedDescription = encodeURIComponent(panelDescription.substring(0, 50));
+        const placeholderUrl = `https://via.placeholder.com/400x400/4f46e5/ffffff?text=${encodedDescription}`;
         
-        for (const model of models) {
-            try {
-                const response = await ai.models.generateImages({
-                    model: model,
-                    prompt: prompt,
-                    config: {
-                        numberOfImages: 1,
-                        outputMimeType: 'image/png',
-                        aspectRatio: '1:1',
-                    },
-                });
+        console.log("Using placeholder image for:", panelDescription);
+        return placeholderUrl;
+        
+        // Uncomment the code below if you want to try Gemini image generation again
+        /*
+        const prompt = `
+            Create an image for a comic book panel in a vibrant, dynamic, American comic book art style.
+            The scene is: "${panelDescription}".
+            The main character is consistently portrayed as: "${characterPrompt}".
+            The image should be action-packed, colorful, and have clear line art with dramatic shading.
+        `;
 
-                if (response.generatedImages && response.generatedImages.length > 0) {
-                    const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-                    return `data:image/png;base64,${base64ImageBytes}`;
-                }
-            } catch (modelError) {
-                console.warn(`Model ${model} failed, trying next...`, modelError);
-                continue;
-            }
+        const response = await ai.models.generateImages({
+            model: 'imagen-3.0-generate-001',
+            prompt: prompt,
+            config: {
+                numberOfImages: 1,
+                outputMimeType: 'image/png',
+                aspectRatio: '1:1',
+            },
+        });
+
+        if (response.generatedImages && response.generatedImages.length > 0) {
+            const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+            return `data:image/png;base64,${base64ImageBytes}`;
+        } else {
+            throw new Error("No image was generated.");
         }
-        
-        throw new Error("All image generation models failed.");
+        */
     } catch (error) {
         console.error("Error generating panel image:", error);
-        throw new Error("Failed to generate an image for a comic panel.");
+        console.error("Error details:", error);
+        
+        // Return a fallback placeholder
+        return `https://via.placeholder.com/400x400/4f46e5/ffffff?text=Comic+Panel`;
     }
 };
 
