@@ -1,0 +1,5 @@
+{
+  "name": "AI Comic Creator",
+  "description": "Generate a multi-panel comic strip from a simple story idea. The AI creates the story, characters, and illustrations, bringing your imagination to life in a vibrant comic book format.",
+  "requestFramePermissions": []
+}
