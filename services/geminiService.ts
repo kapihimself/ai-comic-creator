@@ -2,11 +2,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ComicPanelScript, ComicPanel } from '../types';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not set.");
+const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+
+if (!apiKey) {
+    throw new Error("GEMINI_API_KEY environment variable is not set.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 const generateComicScript = async (storyPrompt: string, characterPrompt: string): Promise<ComicPanelScript[]> => {
     const prompt = `
@@ -139,22 +141,32 @@ const generatePanelImage = async (panelDescription: string, characterPrompt: str
     `;
 
     try {
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: prompt,
-            config: {
-                numberOfImages: 1,
-                outputMimeType: 'image/png',
-                aspectRatio: '1:1',
-            },
-        });
+        // Try different image generation models
+        const models = ['imagen-3.0-generate-001', 'imagen-2.0-generate-001'];
+        
+        for (const model of models) {
+            try {
+                const response = await ai.models.generateImages({
+                    model: model,
+                    prompt: prompt,
+                    config: {
+                        numberOfImages: 1,
+                        outputMimeType: 'image/png',
+                        aspectRatio: '1:1',
+                    },
+                });
 
-        if (response.generatedImages && response.generatedImages.length > 0) {
-            const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-            return `data:image/png;base64,${base64ImageBytes}`;
-        } else {
-            throw new Error("No image was generated.");
+                if (response.generatedImages && response.generatedImages.length > 0) {
+                    const base64ImageBytes = response.generatedImages[0].image.imageBytes;
+                    return `data:image/png;base64,${base64ImageBytes}`;
+                }
+            } catch (modelError) {
+                console.warn(`Model ${model} failed, trying next...`, modelError);
+                continue;
+            }
         }
+        
+        throw new Error("All image generation models failed.");
     } catch (error) {
         console.error("Error generating panel image:", error);
         throw new Error("Failed to generate an image for a comic panel.");
